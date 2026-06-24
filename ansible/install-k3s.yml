@@ -1,0 +1,35 @@
+---
+- name: Install K3s Single Node
+  hosts: k3s
+  become: yes
+
+  tasks:
+
+    - name: Install dependencies
+      apt:
+        update_cache: yes
+        name:
+          - curl
+          - wget
+          - ca-certificates
+        state: present
+
+    - name: Install latest stable K3s
+      shell: |
+        curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Start K3s
+      service:
+        name: k3s
+        state: started
+        enabled: yes
+
+    - name: Verify cluster
+      command: kubectl get nodes
+      register: output
+      changed_when: false
+
+    - debug:
+        var: output.stdout_lines
