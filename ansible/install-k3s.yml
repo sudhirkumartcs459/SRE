@@ -1,13 +1,16 @@
 ---
-- name: Install K3s Single Node
+- name: Install K3s Single Node Cluster
   hosts: k3s
   become: yes
 
   tasks:
 
-    - name: Install dependencies
+    - name: Update apt cache
       apt:
         update_cache: yes
+
+    - name: Install required dependencies
+      apt:
         name:
           - curl
           - wget
@@ -20,16 +23,17 @@
       args:
         creates: /usr/local/bin/k3s
 
-    - name: Start K3s
+    - name: Wait for K3s service to start
       service:
         name: k3s
         state: started
         enabled: yes
 
-    - name: Verify cluster
+    - name: Verify K3s node status
       command: kubectl get nodes
-      register: output
+      register: node_status
       changed_when: false
 
-    - debug:
-        var: output.stdout_lines
+    - name: Display node status
+      debug:
+        var: node_status.stdout_lines
